@@ -1,0 +1,15 @@
+The serial port controller handles two basic modes of use: Transmission (Tx), and
+Reception (Rx). It has partially separated drivers for these uses.
+
+The reception driver asserts the "Read" signal, then checks if the serial
+port asserts the "Ready" signal. If not, it returns early, passing a zero
+value out in the "DRIVER_SERIAL.RxGotData" field. If data is found, the 
+serial will already be presenting it on the data lines, and we can store it
+in the most significant nibble of RxByte. We then cycle the "Read" signal,
+and store the least significant nibble. Then, we clean up the bus, and return.
+
+The transmission driver asserts the "Write" signal, then ignores the "Ready"
+signal altogether. The serial port is designed such that it is only ever
+not ready to write if the buffer is full - and the buffer holds more data than we know what to do with. We present the most significant nibble of TxByte, then
+cycle the "Write" signal and present the least significant nibble. Now finished,
+we clean up the bus and return.
